@@ -2,11 +2,11 @@
 
 #include <stdio.h>
 #include <fcntl.h>  // For open() system call and file access mode options i.e. O_RDWR
-//#include <sys/stat.h>
-//#include <sys/types.h>
 #include <unistd.h>  // For write() system call
 #include <string.h>  // For len() function
 #include <syslog.h>
+#include <errno.h>
+
 
 int main(int argc, char *argv [])
 {
@@ -24,14 +24,14 @@ int main(int argc, char *argv [])
   const char * stringToWrite = argv[2];
   const size_t stringLength = strlen(stringToWrite);
 
-  //int fileDescriptor = open(filePath, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-  //int fileDescriptor = open(filePath, O_WRONLY | O_CREAT | O_TRUNC, 0664);
-  int fileDescriptor = creat(filePath, 0664);
+//  int fileDescriptor = open(filePath, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+//  int fileDescriptor = creat(filePath, 0664);
+  int fileDescriptor = open(filePath, O_WRONLY | O_CREAT | O_TRUNC, 0664);
   if (fileDescriptor == -1)
   {
-    //perror("open() system call failed");
-    perror("creat() system call failed");
-    syslog(LOG_ERR, "Failed to create the file!");
+    perror("open() system call failed");
+//    perror("creat() system call failed");
+    syslog(LOG_ERR, "Failed to create the file: %s", strerror(errno));
     return 1;
   }
 
@@ -41,7 +41,8 @@ int main(int argc, char *argv [])
   if (writtenByteCount == -1)
   {
     perror("write() system call failed");
-    syslog(LOG_ERR, "Failed to write to the file!");
+    syslog(LOG_ERR, "Failed to write to the file: %s", strerror(errno));
+    close(fileDescriptor);
     return 1;
   }
 
