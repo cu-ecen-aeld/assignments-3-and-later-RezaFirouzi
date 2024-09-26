@@ -60,7 +60,10 @@ done
 OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
 
 # remove temporary directories
-#rm -rf /tmp/aeld-data
+rm -rf /tmp/aeld-data
+
+# remove writer object and executable files
+make clean
 
 set +e
 echo ${OUTPUTSTRING} | grep "${MATCHSTR}"
