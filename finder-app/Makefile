@@ -5,24 +5,17 @@ else
 endif
 
 CFLAGS = -Wall -g
-BUILD_DIR = build
-EXECUTABLE = $(BUILD_DIR)/writer
-
-all: $(BUILD_DIR) $(EXECUTABLE)
+EXECUTABLE = writer
 
 # Rule to link object file(s) and create the executable
-$(EXECUTABLE) : $(BUILD_DIR)/writer.o
-	$(CC) $(CFLAGS) -o $(EXECUTABLE) $(BUILD_DIR)/writer.o
+$(EXECUTABLE) : writer.o
+	$(CC) $(CFLAGS) -o $(EXECUTABLE) writer.o
 
 # Rule to compile source file(s) into object file(s)
-$(BUILD_DIR)/writer.o : writer.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c writer.c -o $(BUILD_DIR)/writer.o
-
-# Rule to create the build directory if it doesn't exist
-$(BUILD_DIR) :
-	mkdir -p $(BUILD_DIR)
+writer.o : writer.c
+	$(CC) $(CFLAGS) -c writer.c -o writer.o
 
 # Clean up build files
 .PHONY : clean
 clean :
-	rm -rf $(BUILD_DIR)
+	rm -f writer.o writer
