@@ -1,10 +1,13 @@
+
+// Author: Reza Firouzi
+
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
 #include <sys/wait.h> // for macros to check status
-#include "systemcalls.h"
-
 #include <string.h>
+#include <fcntl.h>  // For open() system call and file access mode options i.e. O_RDWR
+
+#include "systemcalls.h"
 
 /**
  * @param cmd the command to execute with system()
@@ -75,8 +78,8 @@ bool do_exec(int count, ...)
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
     command[count] = command[count];
-    char * arguments[count];
 
+    char * arguments[count];
     memcpy(arguments, &command[1], count * sizeof(*command));
 
     pid_t pid = fork();
@@ -145,6 +148,64 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
     command[count] = command[count];
+
+    char * arguments[count];
+    memcpy(arguments, &command[1], count * sizeof(*command));
+
+    int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+    if (fd == -1) {
+        perror("Failed to call open()");
+        return false;
+    }
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("Failed to call fork()");
+        return false;
+    }
+
+    // Executing the command in the child process
+    if (pid == 0) {
+        // int ret = execv(command[0], arguments);
+        // if (ret == -1) {
+        //     perror("Failed to invoke execv()");
+        //     return false;
+        // }
+        int fdDuplicateRet = dup2(fd, 1);
+        if (fdDuplicateRet == -1) {
+            perror("Failed to invoke dup2()");
+            return false;
+        }
+        close(fd);
+        execv(command[0], arguments);
+        exit(-1);
+    }
+    close(fd);
+
+    // Execution in the parent process
+    pid_t retPid;
+    int status;
+
+    retPid = waitpid(pid, &status, 0);
+    if (retPid == -1) {
+        perror("Failed in calling waitpid()");
+        return  false;
+    }
+
+    // The child process failed to exit/terminate normally
+    if (!WIFEXITED(status)) {
+        return false;
+    }
+
+    // The command in the child process terminated by a signal
+    if (WIFSIGNALED(status)) {
+        return false;
+    }
+
+    // The executed command in the child process not returned success
+    if (WEXITSTATUS(status) != 0) {
+        return false;
+    }
 
 
 /*
