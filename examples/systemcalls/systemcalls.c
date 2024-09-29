@@ -1,7 +1,10 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
 #include <sys/wait.h> // for macros to check status
 #include "systemcalls.h"
+
+#include <string.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -26,7 +29,7 @@ bool do_system(const char *cmd)
         return false;
     }
 
-    // Child process failed to exit normally
+    // Child process failed to exit/terminate normally
     if (!WIFEXITED(status)) {
         return false;
     }
@@ -72,16 +75,51 @@ bool do_exec(int count, ...)
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
     command[count] = command[count];
+    char * arguments[count];
 
-/*
- * TODO:
- *   Execute a system command by calling fork, execv(),
- *   and wait instead of system (see LSP page 161).
- *   Use the command[0] as the full path to the command to execute
- *   (first argument to execv), and use the remaining arguments
- *   as second argument to the execv() command.
- *
-*/
+    memcpy(arguments, &command[1], count * sizeof(*command));
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("Failed to call fork()");
+        return false;
+    }
+
+    // Executing the command in the child process
+    if (pid == 0) {
+        // int ret = execv(command[0], arguments);
+        // if (ret == -1) {
+        //     perror("Failed to invoke execv()");
+        //     return false;
+        // }
+        execv(command[0], arguments);
+        exit(-1);
+    }
+
+    // Execution in the parent process
+    pid_t retPid;
+    int status;
+
+    retPid = waitpid(pid, &status, 0);
+    if (retPid == -1) {
+        perror("Failed in calling waitpid()");
+        return  false;
+    }
+
+    // The child process failed to exit/terminate normally
+    if (!WIFEXITED(status)) {
+        return false;
+    }
+
+    // The command in the child process terminated by a signal
+    if (WIFSIGNALED(status)) {
+        return false;
+    }
+
+    // The executed command in the child process not returned success
+    if (WEXITSTATUS(status) != 0) {
+        return false;
+    }
 
     va_end(args);
 
