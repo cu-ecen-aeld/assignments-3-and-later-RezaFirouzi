@@ -1,4 +1,8 @@
+#include <stdlib.h>
 #include "systemcalls.h"
+
+#include <errno.h>
+#include <string.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -9,13 +13,26 @@
 */
 bool do_system(const char *cmd)
 {
+    /*
+     * TODO  add your code here
+     *  Call the system() function with the command set in the cmd
+     *   and return a boolean true if the system() call completed with success
+     *   or false() if it returned a failure
+    */
+    if (cmd == NULL) {
+        return false;
+    }
 
-/*
- * TODO  add your code here
- *  Call the system() function with the command set in the cmd
- *   and return a boolean true if the system() call completed with success
- *   or false() if it returned a failure
-*/
+    int status = system(cmd);
+
+    if (status == -1) {
+        perror("Failed to invoke system()");
+        return false;
+    }
+
+    if (status != 0) {
+        return false;
+    }
 
     return true;
 }
