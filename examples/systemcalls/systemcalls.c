@@ -1,8 +1,7 @@
 #include <stdlib.h>
-#include "systemcalls.h"
-
 #include <errno.h>
-#include <string.h>
+#include <sys/wait.h> // for macros to check status
+#include "systemcalls.h"
 
 /**
  * @param cmd the command to execute with system()
@@ -13,24 +12,32 @@
 */
 bool do_system(const char *cmd)
 {
-    /*
-     * TODO  add your code here
-     *  Call the system() function with the command set in the cmd
-     *   and return a boolean true if the system() call completed with success
-     *   or false() if it returned a failure
-    */
+    // Check if the cmd is null
     if (cmd == NULL) {
         return false;
     }
 
+    // Execute the command
     int status = system(cmd);
 
+    // Check if the system() call is failed
     if (status == -1) {
         perror("Failed to invoke system()");
         return false;
     }
 
-    if (status != 0) {
+    // Child process failed to exit normally
+    if (!WIFEXITED(status)) {
+        return false;
+    }
+
+    // The command was terminated by a signal
+    if (WIFSIGNALED(status)) {
+        return false;
+    }
+
+    // Failure in having a successful execution
+    if (WEXITSTATUS(status) != 0) {
         return false;
     }
 
