@@ -74,23 +74,19 @@ bool do_exec(int count, ...)
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
+    // command[count] = command[count];
 
     va_end(args);
 
-    char * fileAbsPath = command[0];
-    char * fileBaseName = basename(fileAbsPath);
-    command[0] = fileBaseName;
-
-    pid_t pid = fork();
-    if (pid == -1) {
+    pid_t childPid = fork();
+    if (childPid == -1) {
         perror("Failed to call fork()");
         return false;
     }
 
     // Executing the command in the child process
-    if (pid == 0) {
-        execv(fileAbsPath, command);
+    if (childPid == 0) {
+        execv(command[0], command);
         exit(-1);
     }
 
@@ -98,7 +94,7 @@ bool do_exec(int count, ...)
     pid_t retPid;
     int status;
 
-    retPid = waitpid(pid, &status, 0);
+    retPid = waitpid(childPid, &status, 0);
     if (retPid == -1) {
         perror("Failed in calling waitpid()");
         return  false;
@@ -139,10 +135,6 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     command[count] = command[count];
     va_end(args);
 
-    char * fileAbsPath = command[0];
-    char * fileBaseName = basename(fileAbsPath);
-    command[0] = fileBaseName;
-
     int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
     if (fd == -1) {
         perror("Failed to call open()");
@@ -163,7 +155,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
             return false;
         }
         close(fd);
-        execv(fileAbsPath, command);
+        execv(command[0], command);
         exit(-1);
     }
     close(fd);
