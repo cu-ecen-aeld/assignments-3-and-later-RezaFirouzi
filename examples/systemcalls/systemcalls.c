@@ -33,22 +33,18 @@ bool do_system(const char *cmd)
         return false;
     }
 
-    // Child process failed to exit/terminate normally
-    if (!WIFEXITED(status)) {
+    // Check if the child process exited normally
+    if (WIFEXITED(status)) {
+        // Check if the command executed successfuly
+        if (WEXITSTATUS(status) == 0) {
+            return true;
+        }
+    // Check if the command in the child process terminated by a signal
+    } else if (WIFSIGNALED(status)) {
         return false;
     }
 
-    // The command was terminated by a signal
-    if (WIFSIGNALED(status)) {
-        return false;
-    }
-
-    // Failure in having a successful execution
-    if (WEXITSTATUS(status) != 0) {
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 /**
@@ -80,6 +76,8 @@ bool do_exec(int count, ...)
     // and may be removed
     command[count] = command[count];
 
+    va_end(args);
+
     char * fileAbsPath = command[0];
     char * fileBaseName = basename(fileAbsPath);
     command[0] = fileBaseName;
@@ -106,24 +104,18 @@ bool do_exec(int count, ...)
         return  false;
     }
 
-    // The child process failed to exit/terminate normally
-    if (!WIFEXITED(status)) {
+    // Check if the child process exited normally
+    if (WIFEXITED(status)) {
+        // Check if the command executed successfuly
+        if (WEXITSTATUS(status) == 0) {
+            return true;
+        }
+        // Check if the command in the child process terminated by a signal
+    } else if (WIFSIGNALED(status)) {
         return false;
     }
 
-    // The command in the child process terminated by a signal
-    if (WIFSIGNALED(status)) {
-        return false;
-    }
-
-    // The executed command in the child process not returned success
-    if (WEXITSTATUS(status) != 0) {
-        return false;
-    }
-
-    va_end(args);
-
-    return true;
+    return false;
 }
 
 /**
@@ -145,6 +137,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
     command[count] = command[count];
+    va_end(args);
 
     char * fileAbsPath = command[0];
     char * fileBaseName = basename(fileAbsPath);
@@ -185,31 +178,16 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
         return  false;
     }
 
-    // The child process failed to exit/terminate normally
-    if (!WIFEXITED(status)) {
+    // Check if the child process exited normally
+    if (WIFEXITED(status)) {
+        // Check if the command executed successfuly
+        if (WEXITSTATUS(status) == 0) {
+            return true;
+        }
+        // Check if the command in the child process terminated by a signal
+    } else if (WIFSIGNALED(status)) {
         return false;
     }
 
-    // The command in the child process terminated by a signal
-    if (WIFSIGNALED(status)) {
-        return false;
-    }
-
-    // The executed command in the child process not returned success
-    if (WEXITSTATUS(status) != 0) {
-        return false;
-    }
-
-
-/*
- * TODO
- *   Call execv, but first using https://stackoverflow.com/a/13784315/1446624 as a refernce,
- *   redirect standard out to a file specified by outputfile.
- *   The rest of the behaviour is same as do_exec()
- *
-*/
-
-    va_end(args);
-
-    return true;
+    return false;
 }
