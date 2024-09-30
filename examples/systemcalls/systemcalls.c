@@ -146,8 +146,9 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     // and may be removed
     command[count] = command[count];
 
-    char * arguments[count];
-    memcpy(arguments, &command[1], count * sizeof(*command));
+    char * fileAbsPath = command[0];
+    char * fileBaseName = basename(fileAbsPath);
+    command[0] = fileBaseName;
 
     int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
     if (fd == -1) {
@@ -163,18 +164,13 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
 
     // Executing the command in the child process
     if (pid == 0) {
-        // int ret = execv(command[0], arguments);
-        // if (ret == -1) {
-        //     perror("Failed to invoke execv()");
-        //     return false;
-        // }
         int fdDuplicateRet = dup2(fd, 1);
         if (fdDuplicateRet == -1) {
             perror("Failed to invoke dup2()");
             return false;
         }
         close(fd);
-        execv(command[0], arguments);
+        execv(fileAbsPath, command);
         exit(-1);
     }
     close(fd);
