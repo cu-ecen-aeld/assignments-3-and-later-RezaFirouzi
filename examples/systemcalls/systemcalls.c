@@ -6,6 +6,7 @@
 #include <sys/wait.h> // for macros to check status
 #include <string.h>
 #include <fcntl.h>  // For open() system call and file access mode options i.e. O_RDWR
+#include <libgen.h>
 
 #include "systemcalls.h"
 
@@ -79,8 +80,9 @@ bool do_exec(int count, ...)
     // and may be removed
     command[count] = command[count];
 
-    char * arguments[count];
-    memcpy(arguments, &command[1], count * sizeof(*command));
+    char * fileAbsPath = command[0];
+    char * fileBaseName = basename(fileAbsPath);
+    command[0] = fileBaseName;
 
     pid_t pid = fork();
     if (pid == -1) {
@@ -90,12 +92,7 @@ bool do_exec(int count, ...)
 
     // Executing the command in the child process
     if (pid == 0) {
-        // int ret = execv(command[0], arguments);
-        // if (ret == -1) {
-        //     perror("Failed to invoke execv()");
-        //     return false;
-        // }
-        execv(command[0], arguments);
+        execv(fileAbsPath, command);
         exit(-1);
     }
 
