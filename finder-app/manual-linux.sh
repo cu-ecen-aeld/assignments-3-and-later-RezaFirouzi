@@ -92,19 +92,25 @@ echo "Library dependencies"
 ${CROSS_COMPILE}readelf -a bin/busybox | grep "program interpreter"
 ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 
-TOOLCHAIN_PATH="$HOME/.local/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc/"
-
 # DONE: Add library dependencies to rootfs
-cp "$TOOLCHAIN_PATH/lib/ld-linux-aarch64.so.1" ./lib/
-cp "$TOOLCHAIN_PATH/lib64/libm.so.6" ./lib64/
-cp "$TOOLCHAIN_PATH/lib64/libresolv.so.2" ./lib64/
-cp "$TOOLCHAIN_PATH/lib64/libc.so.6" ./lib64/
+LD_LINUX_LIB_FILE=$(locate ld-linux-aarch64.so.1)
+if [ -z "$LD_LINUX_LIB_FILE" ]; then
+    echo "Failed to find the ld-linux-aarch64.so.1 on the installed toolchain"
+    exit 1
+fi
+TOOLCHAIN_LIB_PATH=$(dirname $LD_LINUX_LIB_FILE)
+
+cp "$LD_LINUX_LIB_FILE" ./lib/
+cp "$TOOLCHAIN_LIB_PATH"/../lib64/libm.so.6 ./lib64/
+cp "$TOOLCHAIN_LIB_PATH"/../lib64/libresolv.so.2 ./lib64/
+cp "$TOOLCHAIN_LIB_PATH"/../lib64/libc.so.6 ./lib64/
 
 # DONE: Make device nodes
 sudo mknod -m 666 dev/null c 1 3
 sudo mknod -m 666 dev/console c 5 1
 
 # DONE: Clean and build the writer utility
+echo "Building the writer utility"
 cd "$FINDER_APP_DIR"
 make clean
 make CROSS_COMPILE=aarch64-none-linux-gnu-
