@@ -93,17 +93,28 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "program interpreter"
 ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 
 # DONE: Add library dependencies to rootfs
-LD_LINUX_LIB_FILE=$(locate ld-linux-aarch64.so.1)
-if [ -z "$LD_LINUX_LIB_FILE" ]; then
-    echo "Failed to find the ld-linux-aarch64.so.1 on the installed toolchain"
+CROSS_COMPILER_FILE=$(which "${CROSS_COMPILE}gcc")
+
+echo $CROSS_COMPILER_FILE
+
+
+if [ -z "$CROSS_COMPILER_FILE" ]; then
+    echo "Failed to find the cross-compiler in the toolchain"
     exit 1
 fi
-TOOLCHAIN_LIB_PATH=$(dirname $LD_LINUX_LIB_FILE)
 
-cp "$LD_LINUX_LIB_FILE" ./lib/
-cp "$TOOLCHAIN_LIB_PATH"/../lib64/libm.so.6 ./lib64/
-cp "$TOOLCHAIN_LIB_PATH"/../lib64/libresolv.so.2 ./lib64/
-cp "$TOOLCHAIN_LIB_PATH"/../lib64/libc.so.6 ./lib64/
+CROSS_COMPILER_PATH=$(dirname "$CROSS_COMPILER_FILE")
+
+echo $CROSS_COMPILER_PATH
+
+TOOLCHAIN_PATH="$CROSS_COMPILER_PATH"/..
+
+echo $TOOLCHAIN_PATH
+
+cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib/ld-linux-aarch64.so.1 ./lib/
+cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libm.so.6 ./lib64/
+cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libresolv.so.2 ./lib64/
+cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libc.so.6 ./lib64/
 
 # DONE: Make device nodes
 sudo mknod -m 666 dev/null c 1 3
