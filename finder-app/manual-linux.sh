@@ -94,19 +94,26 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "program interpreter"
 ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 
 # DONE: Add library dependencies to rootfs
-CROSS_COMPILER_FILE=$(which "${CROSS_COMPILE}gcc")
-if [ -z "$CROSS_COMPILER_FILE" ]; then
-    echo "Failed to find the cross-compiler in the toolchain"
-    exit 1
-fi
+#CROSS_COMPILER_FILE=$(which "${CROSS_COMPILE}gcc")
+#if [ -z "$CROSS_COMPILER_FILE" ]; then
+#    echo "Failed to find the cross-compiler in the toolchain"
+#    exit 1
+#fi
+#
+#CROSS_COMPILER_PATH=$(dirname "$CROSS_COMPILER_FILE")
+#TOOLCHAIN_PATH="$CROSS_COMPILER_PATH"/..
+#
+#cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib/ld-linux-aarch64.so.1 ./lib/
+#cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libm.so.6 ./lib64/
+#cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libresolv.so.2 ./lib64/
+#cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libc.so.6 ./lib64/
 
-CROSS_COMPILER_PATH=$(dirname "$CROSS_COMPILER_FILE")
-TOOLCHAIN_PATH="$CROSS_COMPILER_PATH"/..
+SYSROOT=$(aarch64-none-linux-gnu-gcc -print-sysroot)
 
-cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib/ld-linux-aarch64.so.1 ./lib/
-cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libm.so.6 ./lib64/
-cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libresolv.so.2 ./lib64/
-cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libc.so.6 ./lib64/
+cp ${SYSROOT}/lib/ld-linux-aarch64.so.1 ${OUTDIR}/rootfs/lib/
+cp ${SYSROOT}/lib64/libm.so.6 ${OUTDIR}/rootfs/lib64/
+cp ${SYSROOT}/lib64/libresolv.so.2 ${OUTDIR}/rootfs/lib64/
+cp ${SYSROOT}/lib64/libc.so.6 ${OUTDIR}/rootfs/lib64/
 
 # DONE: Make device nodes
 sudo mknod -m 666 dev/null c 1 3
@@ -116,7 +123,7 @@ sudo mknod -m 666 dev/console c 5 1
 echo "Building the writer utility"
 cd "$FINDER_APP_DIR"
 make clean
-make CROSS_COMPILE=aarch64-none-linux-gnu-
+make CROSS_COMPILE=${CROSS_COMPILE} writer
 
 # DONE: Copy the finder related scripts and executables to the /home directory
 # on the target rootfs
