@@ -83,6 +83,7 @@ else
 fi
 
 # DONE: Make and install busybox
+echo "Installing BusyBox"
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
 make CONFIG_PREFIX="${OUTDIR}/rootfs" ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} install
 
@@ -94,22 +95,13 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 
 # DONE: Add library dependencies to rootfs
 CROSS_COMPILER_FILE=$(which "${CROSS_COMPILE}gcc")
-
-echo $CROSS_COMPILER_FILE
-
-
 if [ -z "$CROSS_COMPILER_FILE" ]; then
     echo "Failed to find the cross-compiler in the toolchain"
     exit 1
 fi
 
 CROSS_COMPILER_PATH=$(dirname "$CROSS_COMPILER_FILE")
-
-echo $CROSS_COMPILER_PATH
-
 TOOLCHAIN_PATH="$CROSS_COMPILER_PATH"/..
-
-echo $TOOLCHAIN_PATH
 
 cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib/ld-linux-aarch64.so.1 ./lib/
 cp "$TOOLCHAIN_PATH"/aarch64-none-linux-gnu/libc/lib64/libm.so.6 ./lib64/
