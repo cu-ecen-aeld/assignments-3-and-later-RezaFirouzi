@@ -11,12 +11,12 @@
 //#define DEBUG_LOG(msg,...) printf("threading: " msg "\n" , ##__VA_ARGS__)
 #define ERROR_LOG(msg,...) printf("threading ERROR: " msg "\n" , ##__VA_ARGS__)
 
-void sleep_ms(int msec) {
-    struct timespec ts;
-    ts.tv_sec = msec / 1000;                // Convering msec to sec
-    ts.tv_nsec = (msec % 1000) * 1000000;   // Convering the remainder to nanosec
-    nanosleep(&ts, NULL);
-}
+// void sleep_ms(int msec) {
+//     struct timespec ts;
+//     ts.tv_sec = msec / 1000;                // Convering msec to sec
+//     ts.tv_nsec = (msec % 1000) * 1000000;   // Convering the remainder to nanosec
+//     nanosleep(&ts, NULL);
+// }
 
 void* threadfunc(void* thread_param)
 {
@@ -24,7 +24,8 @@ void* threadfunc(void* thread_param)
     // hint: use a cast like the one below to obtain thread arguments from your parameter
     struct thread_data* thread_func_args = (struct thread_data *) thread_param;
 
-    sleep_ms(thread_func_args->waitToObtain_ms);
+    // sleep_ms(thread_func_args->waitToObtain_ms);
+    usleep(thread_func_args->waitToObtain_ms * 1000);
 
     int mtxStatus;
     mtxStatus = pthread_mutex_lock(thread_func_args->mtx);
@@ -33,7 +34,8 @@ void* threadfunc(void* thread_param)
         return  (void *) thread_func_args;
     }
 
-    sleep_ms(thread_func_args->waitToRelease_ms);
+    // sleep_ms(thread_func_args->waitToRelease_ms);
+    usleep(thread_func_args->waitToRelease_ms * 1000);
 
     pthread_mutex_unlock(thread_func_args->mtx);
 
