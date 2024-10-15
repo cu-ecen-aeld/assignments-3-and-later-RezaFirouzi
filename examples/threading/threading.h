@@ -9,11 +9,15 @@
  */
 struct thread_data{
     /*
-     * TODO: add other values your thread will need to manage
+     * DONE: add other values your thread will need to manage
      * into this structure, use this structure to communicate
      * between the start_thread_obtaining_mutex function and
      * your thread implementation.
      */
+
+    int waitToObtain_ms;
+    int waitToRelease_ms;
+    pthread_mutex_t *mtx;
 
     /**
      * Set to true if the thread completed with success, false
@@ -21,6 +25,8 @@ struct thread_data{
      */
     bool thread_complete_success;
 };
+
+// typedef struct thread_data thread_data_t;
 
 
 /**
