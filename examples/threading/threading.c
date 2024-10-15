@@ -56,14 +56,22 @@ bool start_thread_obtaining_mutex(pthread_t *thread, pthread_mutex_t *mutex,int 
 
     struct thread_data* threadData = (struct thread_data*)malloc(sizeof(struct thread_data));
 
+    if (!threadData) {
+        ERROR_LOG("Failed to allocate memory for thread_data");
+        return false;
+    }
+
     threadData->mtx = mutex;
     threadData->waitToObtain_ms = wait_to_obtain_ms;
     threadData->waitToRelease_ms = wait_to_release_ms;
+    threadData->thread_complete_success = false;
 
     int ret = pthread_create(thread, NULL, threadfunc, threadData);
     if (ret) {
         errno = ret;
         perror("Pthread creation");
+        ERROR_LOG("Failed to create a new thread!");
+        free(threadData);
         return false;
     }
 
