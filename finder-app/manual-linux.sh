@@ -117,7 +117,7 @@ cp ${SYSROOT}/lib64/libc.so.6 ${OUTDIR}/rootfs/lib64/
 
 # DONE: Make device nodes
 sudo mknod -m 666 dev/null c 1 3
-sudo mknod -m 666 dev/console c 5 1
+sudo mknod -m 600 dev/console c 5 1
 
 # DONE: Clean and build the writer utility
 echo "Building the writer utility"
