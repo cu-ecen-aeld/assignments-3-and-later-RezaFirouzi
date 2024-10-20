@@ -7,6 +7,8 @@ endif
 CFLAGS = -Wall -g
 EXECUTABLE = writer
 
+all : $(EXECUTABLE)
+
 # Rule to link object file(s) and create the executable
 $(EXECUTABLE) : writer.o
 	$(CC) $(CFLAGS) -o $(EXECUTABLE) writer.o
